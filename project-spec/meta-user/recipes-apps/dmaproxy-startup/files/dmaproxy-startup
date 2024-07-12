@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# Use FPGA Manger to load bitstream and device tree overlay
+fpgautil -b /lib/firmware/xilinx/pynq-dma-test/pynq-dma-test.bin -o /lib/firmware/xilinx/pynq-dma-test/pynq-dma-test.dtbo
+
+# Load dma driver module
+unamer=$(uname -r)
+dma_module_path=$(find /lib/modules/$unamer -type f -name 'dmaproxy.ko')
+insmod $dma_module_path

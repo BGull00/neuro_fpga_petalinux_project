@@ -1,0 +1,26 @@
+menu "user packages " 
+config dmaproxy  
+	 bool "dmaproxy"
+	 help
+	
+config dmaproxy-startup  
+	 bool "dmaproxy-startup"
+	 help
+	
+config dmaproxy-test  
+	 bool "dmaproxy-test"
+	 help
+	
+config gpio-demo  
+	 bool "gpio-demo"
+	 help
+	
+config peekpoke  
+	 bool "peekpoke"
+	 help
+	
+config pynq-dma-test  
+	 bool "pynq-dma-test"
+	 help
+	
+endmenu

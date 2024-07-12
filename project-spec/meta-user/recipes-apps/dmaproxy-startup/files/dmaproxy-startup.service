@@ -1,0 +1,9 @@
+[Unit]
+Description=dmaproxy-startup
+  
+[Service]
+ExecStart=/usr/bin/dmaproxy-startup
+StandardOutput=journal+console
+  
+[Install]
+WantedBy=multi-user.target
