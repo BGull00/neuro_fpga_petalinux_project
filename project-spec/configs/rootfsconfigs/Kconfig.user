@@ -23,4 +23,12 @@ config pynq-dma-test
 	 bool "pynq-dma-test"
 	 help
 	
+config xvc-driver  
+	 bool "xvc-driver"
+	 help
+	
+config xvcserver  
+	 bool "xvcserver"
+	 help
+	
 endmenu

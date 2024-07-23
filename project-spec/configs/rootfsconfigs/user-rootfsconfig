@@ -7,3 +7,5 @@ CONFIG_dmaproxy
 CONFIG_dmaproxy-test
 CONFIG_pynq-dma-test
 CONFIG_dmaproxy-startup
+CONFIG_xvc-driver
+CONFIG_xvcserver

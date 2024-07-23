@@ -1,0 +1,151 @@
+/dts-v1/;
+
+/ {
+
+	fragment@0 {
+		target = <0xffffffff>;
+
+		__overlay__ {
+			firmware-name = "design_1_wrapper.bit.bin";
+
+			clocking0 {
+				#clock-cells = <0x00>;
+				assigned-clock-rates = <0x5f5e100>;
+				assigned-clocks = <0xffffffff 0x0f>;
+				clock-output-names = "fabric_clk";
+				clocks = <0xffffffff 0x0f>;
+				compatible = "xlnx,fclk";
+				phandle = <0x02>;
+			};
+		};
+	};
+
+	fragment@1 {
+		target = <0xffffffff>;
+
+		__overlay__ {
+			#address-cells = <0x01>;
+			#size-cells = <0x01>;
+
+			afi0@f8008000 {
+				#address-cells = <0x01>;
+				#size-cells = <0x00>;
+				compatible = "xlnx,afi-fpga";
+				reg = <0xf8008000 0x1000>;
+				xlnx,afi-width = <0x00>;
+				phandle = <0x03>;
+			};
+
+			dma@40400000 {
+				#dma-cells = <0x01>;
+				clock-names = "m_axi_mm2s_aclk\0m_axi_s2mm_aclk\0m_axi_sg_aclk\0s_axi_lite_aclk";
+				clocks = <0xffffffff 0x0f 0xffffffff 0x0f 0xffffffff 0x0f 0xffffffff 0x0f>;
+				compatible = "xlnx,axi-dma-7.1\0xlnx,axi-dma-1.00.a";
+				interrupt-names = "mm2s_introut\0s2mm_introut";
+				interrupt-parent = <0xffffffff>;
+				interrupts = <0x00 0x1d 0x04 0x00 0x1e 0x04>;
+				reg = <0x40400000 0x10000>;
+				xlnx,addrwidth = <0x40>;
+				xlnx,include-sg;
+				xlnx,sg-length-width = <0x1a>;
+				phandle = <0x01>;
+
+				dma-channel@40400000 {
+					compatible = "xlnx,axi-dma-mm2s-channel";
+					dma-channels = <0x01>;
+					interrupts = <0x00 0x1d 0x04>;
+					xlnx,datawidth = <0x20>;
+					xlnx,device-id = <0x00>;
+				};
+
+				dma-channel@40400030 {
+					compatible = "xlnx,axi-dma-s2mm-channel";
+					dma-channels = <0x01>;
+					interrupts = <0x00 0x1e 0x04>;
+					xlnx,datawidth = <0x20>;
+					xlnx,device-id = <0x00>;
+				};
+			};
+
+			debug_bridge@43c00000 {
+				clock-names = "s_axi_aclk";
+				clocks = <0xffffffff 0x0f>;
+				compatible = "xlnx,debug-bridge-3.0\0generic-uio\0xlnx,xvc";
+				reg = <0x43c00000 0x10000>;
+				xlnx,bscan-mux = <0x01>;
+				xlnx,build-revision = <0x00>;
+				xlnx,chip-id = <0x00>;
+				xlnx,clk-input-freq-hz = <0x11e1a300>;
+				xlnx,core-major-ver = <0x01>;
+				xlnx,core-minor-alpha-ver = <0x61>;
+				xlnx,core-minor-ver = <0x00>;
+				xlnx,core-type = <0x01>;
+				xlnx,dclk-has-reset = <0x00>;
+				xlnx,debug-mode = <0x02>;
+				xlnx,design-type = <0x00>;
+				xlnx,device-family = <0x00>;
+				xlnx,en-bscanid-vec = "false";
+				xlnx,en-int-sim = <0x01>;
+				xlnx,en-passthrough = <0x00>;
+				xlnx,enable-clk-divider = "false";
+				xlnx,fifo-style = "SUBCORE";
+				xlnx,ir-id-instr = <0x00>;
+				xlnx,ir-user1-instr = <0x00>;
+				xlnx,ir-width = <0x00>;
+				xlnx,major-version = <0x0e>;
+				xlnx,master-intf-type = <0x01>;
+				xlnx,minor-version = <0x01>;
+				xlnx,num-bs-master = <0x00>;
+				xlnx,pcie-ext-cfg-base-addr = <0x400>;
+				xlnx,pcie-ext-cfg-next-ptr = <0x00>;
+				xlnx,pcie-ext-cfg-vsec-id = <0x08>;
+				xlnx,pcie-ext-cfg-vsec-length = <0x20>;
+				xlnx,pcie-ext-cfg-vsec-rev-id = <0x00>;
+				xlnx,tck-clock-ratio = <0x08>;
+				xlnx,two-prim-mode = "false";
+				xlnx,use-bufr = <0x00>;
+				xlnx,use-ext-bscan = "true";
+				xlnx,use-softbscan = <0x01>;
+				xlnx,use-startup-clk = "false";
+				xlnx,user-scan-chain = <0x01>;
+				xlnx,xsdb-num-slaves = <0x00>;
+				xlnx,xvc-hw-id = <0x01>;
+				xlnx,xvc-sw-id = <0x01>;
+				phandle = <0x04>;
+			};
+
+			dmaproxy {
+				compatible = "xlnx,dmaproxy";
+				dmas = <0x01 0x00 0x01 0x01>;
+				dma-names = "dmaproxy_tx\0dmaproxy_rx";
+			};
+		};
+	};
+
+	__symbols__ {
+		clocking0 = "/fragment@0/__overlay__/clocking0";
+		afi0 = "/fragment@1/__overlay__/afi0@f8008000";
+		axi_dma_0 = "/fragment@1/__overlay__/dma@40400000";
+		debug_bridge_0 = "/fragment@1/__overlay__/debug_bridge@43c00000";
+	};
+
+	__fixups__ {
+		fpga_full = "/fragment@0:target:0";
+		clkc = "/fragment@0/__overlay__/clocking0:assigned-clocks:0\0/fragment@0/__overlay__/clocking0:clocks:0\0/fragment@1/__overlay__/dma@40400000:clocks:0\0/fragment@1/__overlay__/dma@40400000:clocks:8\0/fragment@1/__overlay__/dma@40400000:clocks:16\0/fragment@1/__overlay__/dma@40400000:clocks:24\0/fragment@1/__overlay__/debug_bridge@43c00000:clocks:0";
+		amba = "/fragment@1:target:0";
+		intc = "/fragment@1/__overlay__/dma@40400000:interrupt-parent:0";
+	};
+
+	__local_fixups__ {
+
+		fragment@1 {
+
+			__overlay__ {
+
+				dmaproxy {
+					dmas = <0x00 0x08>;
+				};
+			};
+		};
+	};
+};

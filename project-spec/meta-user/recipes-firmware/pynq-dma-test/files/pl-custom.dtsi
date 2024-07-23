@@ -5,3 +5,4 @@
         	dma-names = "dmaproxy_tx", "dmaproxy_rx";  
       	} ;
 };
+

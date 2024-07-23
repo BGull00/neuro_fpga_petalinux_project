@@ -3844,6 +3844,8 @@ CONFIG_dmaproxy-test=y
 # CONFIG_gpio-demo is not set
 # CONFIG_peekpoke is not set
 CONFIG_pynq-dma-test=y
+CONFIG_xvc-driver=y
+CONFIG_xvcserver=y
 
 #
 # PetaLinux RootFS Settings
