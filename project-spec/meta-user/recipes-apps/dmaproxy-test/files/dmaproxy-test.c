@@ -11,8 +11,7 @@
 
 #include <dmaproxy/dmaproxy.h>
 
-#define PKT_SIZE_BYTES 4
-#define PKT_QUEUE_CAP 125000
+#define PKT_SIZE_BYTES 16
 
 /* Struct used to describe a single DMA channel */
 struct channel {
@@ -21,13 +20,16 @@ struct channel {
 	pthread_t tid;					/* Channel thread id */
 };
 
-/* Struct used to describe queue of neuro FPGA packets */
+/* Struct used to describe a single node of the dynamically allocated packet queue */
+struct pkt_queue_node {
+	uint32_t pkt;
+	struct pkt_queue_node *next;
+};
+
+/* Struct used to describe dynamically allocated queue of neuro FPGA packets */
 struct pkt_queue {
-	uint32_t front_ind;
-	uint32_t back_ind;
-	unsigned int size;
-	unsigned int capacity;
-	uint32_t *arr;
+	struct pkt_queue_node *front;
+	struct pkt_queue_node *back;
 };
 
 /* Global constants */
@@ -62,26 +64,6 @@ static uint64_t get_posix_clock_time_usec ()
 
 /*******************************************************************************************************************/
 /*
- * Returns 1 if queue of packets to send to neuro FPGA is full, 0 if not full, and -1 on error.
- */
-int is_tx_pkt_queue_full() {
-	int ret;
-
-	if(pthread_mutex_lock(&tx_pkt_queue_lock) != 0) {
-		return -1;
-	}
-
-	ret = (tx_pkt_queue.size >= tx_pkt_queue.capacity);
-
-	if(pthread_mutex_unlock(&tx_pkt_queue_lock) != 0) {
-		return -1;
-	}
-
-	return ret;
-}
-
-/*******************************************************************************************************************/
-/*
  * Returns 1 if queue of packets to send to neuro FPGA is empty, 0 if not empty, and -1 on error.
  */
 int is_tx_pkt_queue_empty() {
@@ -91,7 +73,7 @@ int is_tx_pkt_queue_empty() {
 		return -1;
 	}
 
-	ret = (tx_pkt_queue.size == 0);
+	ret = (tx_pkt_queue.front == NULL);
 
 	if(pthread_mutex_unlock(&tx_pkt_queue_lock) != 0) {
 		return -1;
@@ -105,6 +87,8 @@ int is_tx_pkt_queue_empty() {
  * Push a packet onto the back of the queue of packets to send to neuro FPGA. Returns 0 on success and -1 on failure.
  */
 int tx_pkt_queue_push(uint32_t pkt) {
+	struct pkt_queue_node *new_node;
+
 	if(stop) {
 		return -1;
 	}
@@ -113,14 +97,21 @@ int tx_pkt_queue_push(uint32_t pkt) {
 		return -1;
 	}
 
-	if(is_tx_pkt_queue_full() != 0) {
+	new_node = (struct pkt_queue_node *) malloc(sizeof(struct pkt_queue_node));
+	if(new_node == NULL) {
 		pthread_mutex_unlock(&tx_pkt_queue_lock);
 		return -1;
 	}
 
-	tx_pkt_queue.back_ind = (tx_pkt_queue.back_ind + 1) % tx_pkt_queue.capacity;
-	tx_pkt_queue.arr[tx_pkt_queue.back_ind] = pkt;
-	tx_pkt_queue.size++;
+	new_node->pkt = pkt;
+
+	if(is_tx_pkt_queue_empty() == 0) {
+		tx_pkt_queue.back->next = new_node;
+	} else {
+		tx_pkt_queue.front = new_node;
+	}
+
+	tx_pkt_queue.back = new_node;
 
 	if(pthread_mutex_unlock(&tx_pkt_queue_lock) != 0) {
 		return -1;
@@ -134,6 +125,8 @@ int tx_pkt_queue_push(uint32_t pkt) {
  * Pop a packet from the front of the queue of packets to send to neuro FPGA. Returns 0 on success and -1 on failure.
  */
 int tx_pkt_queue_pop(uint32_t *pkt) {
+	struct pkt_queue_node *node_to_delete;
+
 	if(pthread_mutex_lock(&tx_pkt_queue_lock) != 0) {
 		return -1;
 	}
@@ -143,35 +136,23 @@ int tx_pkt_queue_pop(uint32_t *pkt) {
 		return -1;
 	}
 
-	*pkt = tx_pkt_queue.arr[tx_pkt_queue.front_ind];
-	tx_pkt_queue.front_ind = (tx_pkt_queue.front_ind + 1) % tx_pkt_queue.capacity;
-	tx_pkt_queue.size--;
+	node_to_delete = tx_pkt_queue.front;
+	*pkt = node_to_delete->pkt;
+
+	if(tx_pkt_queue.front != tx_pkt_queue.back) {
+		tx_pkt_queue.front = node_to_delete->next;
+	} else {
+		tx_pkt_queue.front = NULL;
+		tx_pkt_queue.back = NULL;
+	}
+	
+	free(node_to_delete);
 
 	if(pthread_mutex_unlock(&tx_pkt_queue_lock) != 0) {
 		return -1;
 	}
 
 	return 0;
-}
-
-/*******************************************************************************************************************/
-/*
- * Returns 1 if queue of packets to receive from neuro FPGA is full, 0 if not full, and -1 on error.
- */
-int is_rx_pkt_queue_full() {
-	int ret;
-
-	if(pthread_mutex_lock(&rx_pkt_queue_lock) != 0) {
-		return -1;
-	}
-
-	ret = (rx_pkt_queue.size >= rx_pkt_queue.capacity);
-
-	if(pthread_mutex_unlock(&rx_pkt_queue_lock) != 0) {
-		return -1;
-	}
-
-	return ret;
 }
 
 /*******************************************************************************************************************/
@@ -185,7 +166,7 @@ int is_rx_pkt_queue_empty() {
 		return -1;
 	}
 
-	ret = (rx_pkt_queue.size == 0);
+	ret = (rx_pkt_queue.front == NULL);
 
 	if(pthread_mutex_unlock(&rx_pkt_queue_lock) != 0) {
 		return -1;
@@ -199,18 +180,31 @@ int is_rx_pkt_queue_empty() {
  * Push a packet onto the back of the queue of packets to receive from neuro FPGA. Returns 0 on success and -1 on failure.
  */
 int rx_pkt_queue_push(uint32_t pkt) {
+	struct pkt_queue_node *new_node;
+
+	if(stop) {
+		return -1;
+	}
+
 	if(pthread_mutex_lock(&rx_pkt_queue_lock) != 0) {
 		return -1;
 	}
 
-	if(is_rx_pkt_queue_full() != 0) {
+	new_node = (struct pkt_queue_node *) malloc(sizeof(struct pkt_queue_node));
+	if(new_node == NULL) {
 		pthread_mutex_unlock(&rx_pkt_queue_lock);
 		return -1;
 	}
 
-	rx_pkt_queue.back_ind = (rx_pkt_queue.back_ind + 1) % rx_pkt_queue.capacity;
-	rx_pkt_queue.arr[rx_pkt_queue.back_ind] = pkt;
-	rx_pkt_queue.size++;
+	new_node->pkt = pkt;
+
+	if(is_rx_pkt_queue_empty() == 0) {
+		rx_pkt_queue.back->next = new_node;
+	} else {
+		rx_pkt_queue.front = new_node;
+	}
+
+	rx_pkt_queue.back = new_node;
 
 	if(pthread_mutex_unlock(&rx_pkt_queue_lock) != 0) {
 		return -1;
@@ -224,6 +218,8 @@ int rx_pkt_queue_push(uint32_t pkt) {
  * Pop a packet from the front of the queue of packets to receive from neuro FPGA. Returns 0 on success and -1 on failure.
  */
 int rx_pkt_queue_pop(uint32_t *pkt) {
+	struct pkt_queue_node *node_to_delete;
+
 	if(pthread_mutex_lock(&rx_pkt_queue_lock) != 0) {
 		return -1;
 	}
@@ -233,9 +229,17 @@ int rx_pkt_queue_pop(uint32_t *pkt) {
 		return -1;
 	}
 
-	*pkt = rx_pkt_queue.arr[rx_pkt_queue.front_ind];
-	rx_pkt_queue.front_ind = (rx_pkt_queue.front_ind + 1) % rx_pkt_queue.capacity;
-	rx_pkt_queue.size--;
+	node_to_delete = rx_pkt_queue.front;
+	*pkt = node_to_delete->pkt;
+
+	if(rx_pkt_queue.front != rx_pkt_queue.back) {
+		rx_pkt_queue.front = node_to_delete->next;
+	} else {
+		rx_pkt_queue.front = NULL;
+		rx_pkt_queue.back = NULL;
+	}
+	
+	free(node_to_delete);
 
 	if(pthread_mutex_unlock(&rx_pkt_queue_lock) != 0) {
 		return -1;
@@ -264,7 +268,6 @@ void *tx_thread(struct channel *channel_ptr) {
 
 			/* If the current buffer has a DMA transfer active, finish it first (blocks thread) */
 			if(is_buffer_active[buffer_id]) {
-				pkt = channel_ptr->buf_ptr[buffer_id].buffer[0];
 				ioctl(channel_ptr->fd, FINISH_XFER, &buffer_id);
 				if(channel_ptr->buf_ptr[buffer_id].status != PROXY_NO_ERROR) {
 					printf("DMA neuro FPGA tx transfer error at buffer_id=%d\n", buffer_id);
@@ -298,6 +301,7 @@ void *tx_thread(struct channel *channel_ptr) {
  * Thread for DMA rx channel.
  */
 void *rx_thread(struct channel *channel_ptr) {
+	unsigned int i;
 	int buffer_id;
 	uint32_t pkt;
 	
@@ -318,8 +322,10 @@ void *rx_thread(struct channel *channel_ptr) {
 
 			/* If the finished DMA transfer completed without timeout or error, add the received packet to the rx queue */
 			if(channel_ptr->buf_ptr[buffer_id].status == PROXY_NO_ERROR) {
-				pkt = channel_ptr->buf_ptr[buffer_id].buffer[0];
-				rx_pkt_queue_push(pkt);
+				for(i = 0; i < PKT_SIZE_BYTES / sizeof(unsigned int); i++) {
+					pkt = channel_ptr->buf_ptr[buffer_id].buffer[i];
+					rx_pkt_queue_push(pkt);
+				}
 			}
 
 			if(channel_ptr->buf_ptr[buffer_id].status == PROXY_TIMEOUT) {
@@ -441,19 +447,10 @@ int setup_channels() {
 /*
  * Setup queue of packets to be sent to neuro FPGA. Returns 0 on success and -1 on failure.
  */
-int setup_tx_pkt_queue(unsigned int capacity) {
+int setup_tx_pkt_queue() {
 	/* Init queue members */
-	tx_pkt_queue.capacity = capacity;
-	tx_pkt_queue.size = 0;
-	tx_pkt_queue.front_ind = 0;
-	tx_pkt_queue.back_ind = capacity-1;
-	
-	/* Allocate memory for queue data */
-	tx_pkt_queue.arr = (uint32_t *) malloc(capacity * sizeof(uint32_t));
-	if(tx_pkt_queue.arr == NULL) {
-		printf("Failed to malloc memory for queue of pacekts to be sent to neuro FPGA\n");
-		return -1;
-	}
+	tx_pkt_queue.front = NULL;
+	tx_pkt_queue.back = NULL;
 
 	/* Init queue mutex and set its type to recursive */
 	if(pthread_mutexattr_init(&tx_pkt_queue_lock_attr) != 0) {
@@ -476,19 +473,10 @@ int setup_tx_pkt_queue(unsigned int capacity) {
 /*
  * Setup queue of packets to receive from neuro FPGA. Returns 0 on success and -1 on failure.
  */
-int setup_rx_pkt_queue(unsigned int capacity) {
+int setup_rx_pkt_queue() {
 	/* Init queue members */
-	rx_pkt_queue.capacity = capacity;
-	rx_pkt_queue.size = 0;
-	rx_pkt_queue.front_ind = 0;
-	rx_pkt_queue.back_ind = capacity-1;
-
-	/* Allocate memory for queue data */
-	rx_pkt_queue.arr = (uint32_t *) malloc(capacity * sizeof(uint32_t));
-	if(rx_pkt_queue.arr == NULL) {
-		printf("Failed to malloc memory for queue of pacekts to be received from neuro FPGA\n");
-		return -1;
-	}
+	rx_pkt_queue.front = NULL;
+	rx_pkt_queue.back = NULL;
 
 	/* Init queue mutex and set its type to recursive */
 	if(pthread_mutexattr_init(&rx_pkt_queue_lock_attr) != 0) {
@@ -514,11 +502,11 @@ int setup_rx_pkt_queue(unsigned int capacity) {
 int setup_neuro_fpga_dma() {
 	printf("Setting up queues to hold packets of data to be sent to and received from neuro FPGA\n");
 
-	if(setup_tx_pkt_queue(PKT_QUEUE_CAP) != 0) {
+	if(setup_tx_pkt_queue() != 0) {
 		return -1;
 	}
 
-	if(setup_rx_pkt_queue(PKT_QUEUE_CAP) != 0) {
+	if(setup_rx_pkt_queue() != 0) {
 		return -1;
 	}
 
@@ -601,7 +589,12 @@ int cleanup_channels() {
  * attributes. Returns 0 on success and -1 on failure.
  */
 int cleanup_tx_pkt_queue() {
-	free(tx_pkt_queue.arr);
+	uint32_t pkt;
+
+	while(is_tx_pkt_queue_empty() == 0) {
+		tx_pkt_queue_pop(&pkt);
+	}
+
 	if(pthread_mutex_destroy(&tx_pkt_queue_lock) != 0) {
 		printf("Failed to destroy mutex for queue of packets to be sent to neuro FPGA\n");
 		return -1;
@@ -620,7 +613,12 @@ int cleanup_tx_pkt_queue() {
  * attributes. Returns 0 on success and -1 on failure.
  */
 int cleanup_rx_pkt_queue() {
-	free(rx_pkt_queue.arr);
+	uint32_t pkt;
+
+	while(is_rx_pkt_queue_empty() == 0) {
+		rx_pkt_queue_pop(&pkt);
+	}
+
 	if(pthread_mutex_destroy(&rx_pkt_queue_lock) != 0) {
 		printf("Failed to destroy mutex for queue of packets to be received from neuro FPGA\n");
 		return -1;
@@ -654,11 +652,11 @@ int cleanup_neuro_fpga_dma() {
 	
 	printf("Cleaning up queues to hold packets of data to be sent to and received from neuro FPGA\n");
 
-	if(cleanup_tx_pkt_queue(PKT_QUEUE_CAP) != 0) {
+	if(cleanup_tx_pkt_queue() != 0) {
 		return -1;
 	}
 
-	if(cleanup_rx_pkt_queue(PKT_QUEUE_CAP) != 0) {
+	if(cleanup_rx_pkt_queue() != 0) {
 		return -1;
 	}
 
@@ -671,6 +669,8 @@ int main(int argc, char *argv[]) {
 	uint64_t start_time;
 	uint64_t end_time;
 
+	const unsigned int NUM_TRANSFERS = 1;
+
 	printf("Neuro FPGA DMA Test\n\n");
 
 	if(setup_neuro_fpga_dma() != 0) {
@@ -681,14 +681,17 @@ int main(int argc, char *argv[]) {
 
 	start_time = get_posix_clock_time_usec();
 
-	for(i = 0; i < PKT_QUEUE_CAP; i++) {
-		tx_pkt_queue_push(i);
-	}
+	// for(i = 0; i < NUM_TRANSFERS; i++) {
+	// 	tx_pkt_queue_push(i);
+	// }
+
+	tx_pkt_queue_push(1);
 
 	printf("Popping packets from rx queue\n");
-	for(i = 0; i < PKT_QUEUE_CAP; i++) {
+	for(i = 0; i < NUM_TRANSFERS; i++) {
 		while(is_rx_pkt_queue_empty() == 1) {}
 		rx_pkt_queue_pop(&pkt);
+		printf("rx pkt=%08x\n", pkt);
 		if(pkt != i) {
 			printf("ERROR: popped rx DMA packet %d does not equal epected DMA packet %d\n", pkt, i);
 		}
@@ -696,7 +699,9 @@ int main(int argc, char *argv[]) {
 
 	end_time = get_posix_clock_time_usec();
 
-	printf("Total time in usec for %d %d-byte transfers = %llu\n", PKT_QUEUE_CAP, BUFFER_SIZE, end_time-start_time);
+	printf("Total time in usec for %d %d-byte transfers = %llu\n", (int)NUM_TRANSFERS, BUFFER_SIZE, end_time-start_time);
+
+	while(1) {}
 
 	if(cleanup_neuro_fpga_dma() != 0) {
 		return EXIT_FAILURE;

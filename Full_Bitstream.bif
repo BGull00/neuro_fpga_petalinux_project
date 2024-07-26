@@ -1,4 +1,4 @@
 all:
 {
-        project-spec/hw-description/design_1_wrapper.bit
+        network.bit
 }

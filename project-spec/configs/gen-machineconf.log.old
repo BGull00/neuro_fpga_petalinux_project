@@ -1,14 +1,14 @@
-2024-07-23 15:59:13,857 - [DEBUG] Using xsct from : /home/bryson/Xilinx/PetaLinux/2024.1/components/xsct/bin/xsct
-2024-07-23 15:59:13,857 - [INFO] Getting Platform info from HW file
-2024-07-23 15:59:13,857 - [DEBUG] Using the soc_family specified by user:zynq
-2024-07-23 15:59:13,880 - [DEBUG] Hardware Configuration:
-2024-07-23 15:59:13,880 - [DEBUG] MACHINE     = "None"
-2024-07-23 15:59:13,880 - [DEBUG] DEVICE_ID   = "7z020"
-2024-07-23 15:59:13,880 - [DEBUG] SOC_FAMILY  = "zynq"
-2024-07-23 15:59:13,880 - [DEBUG] SOC_VARIANT = ""
-2024-07-23 15:59:13,887 - [INFO] Silentconfig project
-2024-07-23 15:59:13,888 - [DEBUG] Running CMD: yes "" | env KCONFIG_CONFIG=/home/bryson/Documents/Xilinx_Projects/pynq_dma_test/petalinux/project-spec/configs/config conf /home/bryson/Documents/Xilinx_Projects/pynq_dma_test/petalinux/project-spec/configs/configs/Kconfig
-2024-07-23 15:59:13,899 - [DEBUG] *
+2024-07-26 20:11:31,794 - [DEBUG] Using xsct from : /home/bryson/Xilinx/PetaLinux/2024.1/components/xsct/bin/xsct
+2024-07-26 20:11:31,795 - [INFO] Getting Platform info from HW file
+2024-07-26 20:11:31,795 - [DEBUG] Using the soc_family specified by user:zynq
+2024-07-26 20:11:31,817 - [DEBUG] Hardware Configuration:
+2024-07-26 20:11:31,817 - [DEBUG] MACHINE     = "None"
+2024-07-26 20:11:31,817 - [DEBUG] DEVICE_ID   = "7z020"
+2024-07-26 20:11:31,817 - [DEBUG] SOC_FAMILY  = "zynq"
+2024-07-26 20:11:31,817 - [DEBUG] SOC_VARIANT = ""
+2024-07-26 20:11:31,827 - [INFO] Silentconfig project
+2024-07-26 20:11:31,827 - [DEBUG] Running CMD: yes "" | env KCONFIG_CONFIG=/home/bryson/Documents/Xilinx_Projects/pynq_dma_test/petalinux/project-spec/configs/config conf /home/bryson/Documents/Xilinx_Projects/pynq_dma_test/petalinux/project-spec/configs/configs/Kconfig
+2024-07-26 20:11:31,839 - [DEBUG] *
 * PetaLinux System Configuration
 *
 ZYNQ Configuration (SYSTEM_ZYNQ) [Y/?] y
@@ -254,9 +254,9 @@ user layer 0 (USER_LAYER_0) []
 #
 # configuration written to /home/bryson/Documents/Xilinx_Projects/pynq_dma_test/petalinux/project-spec/configs/config
 #
-2024-07-23 15:59:14,008 - [INFO] Silentconfig rootfs
-2024-07-23 15:59:14,008 - [DEBUG] Running CMD: yes "" | env KCONFIG_CONFIG=/home/bryson/Documents/Xilinx_Projects/pynq_dma_test/petalinux/project-spec/configs/rootfs_config conf /home/bryson/Documents/Xilinx_Projects/pynq_dma_test/petalinux/project-spec/configs/rootfsconfigs/Kconfig
-2024-07-23 15:59:14,028 - [DEBUG] *
+2024-07-26 20:11:31,949 - [INFO] Silentconfig rootfs
+2024-07-26 20:11:31,949 - [DEBUG] Running CMD: yes "" | env KCONFIG_CONFIG=/home/bryson/Documents/Xilinx_Projects/pynq_dma_test/petalinux/project-spec/configs/rootfs_config conf /home/bryson/Documents/Xilinx_Projects/pynq_dma_test/petalinux/project-spec/configs/rootfsconfigs/Kconfig
+2024-07-26 20:11:31,969 - [DEBUG] *
 * Configuration
 *
 *
@@ -3614,4 +3614,4 @@ Add Users to Sudo users (ADD_USERS_TO_SUDOERS) [petalinux]
 #
 # configuration written to /home/bryson/Documents/Xilinx_Projects/pynq_dma_test/petalinux/project-spec/configs/rootfs_config
 #
-2024-07-23 15:59:14,034 - [INFO] Generating configuration files
+2024-07-26 20:11:31,977 - [INFO] Generating configuration files
