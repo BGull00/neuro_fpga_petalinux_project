@@ -2,8 +2,15 @@
 
 # Use FPGA Manger to load bitstream and device tree overlay
 fpgautil -b /lib/firmware/xilinx/pynq-dma-test/design_1_wrapper.bit.bin -o /lib/firmware/xilinx/pynq-dma-test/pynq-dma-test.dtbo
+fpgautil -b /lib/firmware/xilinx/pynq-dma-test/network.bit.bin
 
 # Load dma driver module
 unamer=$(uname -r)
 dma_module_path=$(find /lib/modules/$unamer -type f -name 'dmaproxy.ko')
 insmod $dma_module_path
+
+# Load xvc driver module
+modprobe xvc-driver
+
+# Start xvc server in background
+xvcserver &
