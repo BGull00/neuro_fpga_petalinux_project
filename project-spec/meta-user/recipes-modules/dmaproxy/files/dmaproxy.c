@@ -230,7 +230,7 @@ static void start_transfer(struct dmaproxy_channel *pchannel_p)
  */
 static void wait_for_transfer(struct dmaproxy_channel *pchannel_p)
 {
-	unsigned long timeout = msecs_to_jiffies(3000);
+	unsigned long timeout = msecs_to_jiffies(999999999);
 	enum dma_status status;
 	int bdindex = pchannel_p->bdindex;
 
