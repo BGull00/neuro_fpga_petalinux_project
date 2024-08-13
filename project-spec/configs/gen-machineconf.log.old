@@ -1,14 +1,14 @@
-2024-08-06 15:38:35,758 - [DEBUG] Using xsct from : /home/bryson/Xilinx/PetaLinux/2024.1/components/xsct/bin/xsct
-2024-08-06 15:38:35,758 - [INFO] Getting Platform info from HW file
-2024-08-06 15:38:35,758 - [DEBUG] Using the soc_family specified by user:zynq
-2024-08-06 15:38:35,780 - [DEBUG] Hardware Configuration:
-2024-08-06 15:38:35,780 - [DEBUG] MACHINE     = "None"
-2024-08-06 15:38:35,780 - [DEBUG] DEVICE_ID   = "7z020"
-2024-08-06 15:38:35,781 - [DEBUG] SOC_FAMILY  = "zynq"
-2024-08-06 15:38:35,781 - [DEBUG] SOC_VARIANT = ""
-2024-08-06 15:38:35,786 - [INFO] Silentconfig project
-2024-08-06 15:38:35,786 - [DEBUG] Running CMD: yes "" | env KCONFIG_CONFIG=/home/bryson/Documents/Xilinx_Projects/pynq_dma_test/petalinux/project-spec/configs/config conf /home/bryson/Documents/Xilinx_Projects/pynq_dma_test/petalinux/project-spec/configs/configs/Kconfig
-2024-08-06 15:38:35,796 - [DEBUG] *
+2024-08-13 19:51:32,168 - [DEBUG] Using xsct from : /home/bryson/Xilinx/PetaLinux/2024.1/components/xsct/bin/xsct
+2024-08-13 19:51:32,168 - [INFO] Getting Platform info from HW file
+2024-08-13 19:51:32,168 - [DEBUG] Using the soc_family specified by user:zynq
+2024-08-13 19:51:32,191 - [DEBUG] Hardware Configuration:
+2024-08-13 19:51:32,191 - [DEBUG] MACHINE     = "None"
+2024-08-13 19:51:32,191 - [DEBUG] DEVICE_ID   = "7z020"
+2024-08-13 19:51:32,191 - [DEBUG] SOC_FAMILY  = "zynq"
+2024-08-13 19:51:32,191 - [DEBUG] SOC_VARIANT = ""
+2024-08-13 19:51:32,199 - [INFO] Silentconfig project
+2024-08-13 19:51:32,199 - [DEBUG] Running CMD: yes "" | env KCONFIG_CONFIG=/home/bryson/Documents/Xilinx_Projects/pynq_dma_test/petalinux/project-spec/configs/config conf /home/bryson/Documents/Xilinx_Projects/pynq_dma_test/petalinux/project-spec/configs/configs/Kconfig
+2024-08-13 19:51:32,210 - [DEBUG] *
 * PetaLinux System Configuration
 *
 ZYNQ Configuration (SYSTEM_ZYNQ) [Y/?] y
@@ -254,9 +254,9 @@ user layer 0 (USER_LAYER_0) []
 #
 # configuration written to /home/bryson/Documents/Xilinx_Projects/pynq_dma_test/petalinux/project-spec/configs/config
 #
-2024-08-06 15:38:35,906 - [INFO] Silentconfig rootfs
-2024-08-06 15:38:35,906 - [DEBUG] Running CMD: yes "" | env KCONFIG_CONFIG=/home/bryson/Documents/Xilinx_Projects/pynq_dma_test/petalinux/project-spec/configs/rootfs_config conf /home/bryson/Documents/Xilinx_Projects/pynq_dma_test/petalinux/project-spec/configs/rootfsconfigs/Kconfig
-2024-08-06 15:38:35,923 - [DEBUG] *
+2024-08-13 19:51:32,315 - [INFO] Silentconfig rootfs
+2024-08-13 19:51:32,315 - [DEBUG] Running CMD: yes "" | env KCONFIG_CONFIG=/home/bryson/Documents/Xilinx_Projects/pynq_dma_test/petalinux/project-spec/configs/rootfs_config conf /home/bryson/Documents/Xilinx_Projects/pynq_dma_test/petalinux/project-spec/configs/rootfsconfigs/Kconfig
+2024-08-13 19:51:32,336 - [DEBUG] *
 * Configuration
 *
 *
@@ -2397,7 +2397,7 @@ packagegroup-core-boot-dbg (packagegroup-core-boot-dbg) [N/y/?]
 *
 * packagegroup-core-buildessential 
 *
-packagegroup-core-buildessential (packagegroup-core-buildessential) [N/y/?] 
+packagegroup-core-buildessential (packagegroup-core-buildessential) [Y/n/?] 
 packagegroup-core-buildessential-dev (packagegroup-core-buildessential-dev) [N/y/?] 
 packagegroup-core-buildessential-dbg (packagegroup-core-buildessential-dbg) [N/y/?] 
 *
@@ -2460,7 +2460,7 @@ packagegroup-core-x11-xserver-dbg (packagegroup-core-x11-xserver-dbg) [N/y/?]
 *
 * packagegroup-self-hosted 
 *
-packagegroup-self-hosted (packagegroup-self-hosted) [N/y/?] 
+packagegroup-self-hosted (packagegroup-self-hosted) [Y/n/?] 
 packagegroup-self-hosted-extended-dev (packagegroup-self-hosted-extended-dev) [N/y/?] 
 packagegroup-self-hosted-debug-dev (packagegroup-self-hosted-debug-dev) [N/y/?] 
 packagegroup-self-hosted-dev (packagegroup-self-hosted-dev) [N/y/?] 
@@ -3614,4 +3614,4 @@ Add Users to Sudo users (ADD_USERS_TO_SUDOERS) [petalinux]
 #
 # configuration written to /home/bryson/Documents/Xilinx_Projects/pynq_dma_test/petalinux/project-spec/configs/rootfs_config
 #
-2024-08-06 15:38:35,929 - [INFO] Generating configuration files
+2024-08-13 19:51:32,341 - [INFO] Generating configuration files

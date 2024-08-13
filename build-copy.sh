@@ -26,4 +26,16 @@ rm network.bit.bin
 cp ../vivado/pynq_dma_test.runs/impl_1/design_1_wrapper.bit network.bit
 bootgen -image Full_Bitstream.bif -arch zynq -process_bitstream bin
 sudo cp network.bit.bin /media/bryson/dd8edc57-7308-476f-b90a-4f3dd6776c58/lib/firmware/xilinx/pynq-dma-test/
+
+# Clone fresh TENNLab framework to SD card (without .git/)
+rm -rf framework
+git clone -b zynq_dma git@bitbucket.org:neuromorphic-utk/framework.git
+cd framework
+mkdir /media/bryson/dd8edc57-7308-476f-b90a-4f3dd6776c58/home/petalinux/framework
+git archive HEAD | tar -x -C /media/bryson/dd8edc57-7308-476f-b90a-4f3dd6776c58/home/petalinux/framework
+
+# Copy xor network to SD card
+cp ~/Documents/TENNLab/framework/cpp-apps/networks/xor_noleak.txt /media/bryson/dd8edc57-7308-476f-b90a-4f3dd6776c58/home/petalinux/framework/cpp-apps/networks/
+
+# Open putty to connect to Zynq serial terminal
 sudo putty

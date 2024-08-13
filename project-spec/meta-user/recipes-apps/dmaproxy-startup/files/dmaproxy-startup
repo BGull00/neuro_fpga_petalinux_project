@@ -14,3 +14,6 @@ modprobe xvc-driver
 
 # Start xvc server in background
 xvcserver &
+
+# Ensure timestamps on copied TENNLab framework are sensible
+find /home/petalinux/framework -type f -exec touch {} +
