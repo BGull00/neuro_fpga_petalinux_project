@@ -122,18 +122,8 @@
 
 MODULE_LICENSE("GPL");
 
-#define DRIVER_NAME 			"dmaproxy"
-#define TX_CHANNEL			0
-#define RX_CHANNEL			1
-#define ERROR 					-1
-#define TEST_SIZE 			1024
-
-/* The following module parameter controls if the internal test runs when the module is inserted.
- * Note that this test requires a transmit and receive channel to function and uses the first
- * transmit and receive channnels when multiple channels exist.
- */
-static unsigned internal_test = 0;
-module_param(internal_test, int, S_IRUGO);
+#define DRIVER_NAME	"dmaproxy"
+#define ERROR		-1
 
 /* The following data structures represent a single channel of DMA, transmit or receive in the case
  * when using AXI DMA.  It contains all the data to be maintained for the channel.
@@ -250,64 +240,6 @@ static void wait_for_transfer(struct dmaproxy_channel *pchannel_p)
 			   status == DMA_ERROR ? "error" : "in progress");
 	} else
 		pchannel_p->buffer_table_p[bdindex].status = PROXY_NO_ERROR;
-}
-
-/* The following functions are designed to test the driver from within the device
- * driver without any user space. It uses the first channel buffer for the transmit and receive.
- * If this works but the user application does not then the user application is at fault.
- */
-static void tx_test(struct work_struct *local_work)
-{
-	struct dmaproxy *lp;
-	lp = container_of(local_work, struct dmaproxy, work);
-
-	/* Use the 1st buffer for the test
-	 */
-	lp->channels[TX_CHANNEL].buffer_table_p[0].length = TEST_SIZE;
-	lp->channels[TX_CHANNEL].bdindex = 0;
-
-	start_transfer(&lp->channels[TX_CHANNEL]);
-	wait_for_transfer(&lp->channels[TX_CHANNEL]);
-}
-
-static void test(struct dmaproxy *lp)
-{
-	int i;
-
-	printk("Starting internal test\n");
-
-	/* Initialize the buffers for the test
-	 */
-	for (i = 0; i < TEST_SIZE / sizeof(unsigned int); i++) {
-		lp->channels[TX_CHANNEL].buffer_table_p[0].buffer[i] = i;
-		lp->channels[RX_CHANNEL].buffer_table_p[0].buffer[i] = 0;
-	}
-
-	/* Since the transfer function is blocking the transmit channel is started from a worker
-	 * thread
-	 */
-	INIT_WORK(&lp->work, tx_test);
-	schedule_work(&lp->work);
-
-	/* Receive the data that was just sent and looped back
-	 */
-	lp->channels[RX_CHANNEL].buffer_table_p->length = TEST_SIZE;
-	lp->channels[TX_CHANNEL].bdindex = 0;
-
-	start_transfer(&lp->channels[RX_CHANNEL]);
-	wait_for_transfer(&lp->channels[RX_CHANNEL]);
-
-	/* Verify the receiver buffer matches the transmit buffer to
-	 * verify the transfer was good
-	 */
-	for (i = 0; i < TEST_SIZE / sizeof(unsigned int); i++)
-		if (lp->channels[TX_CHANNEL].buffer_table_p[0].buffer[i] !=
-			lp->channels[RX_CHANNEL].buffer_table_p[0].buffer[i]) {
-			printk("buffers not equal, first index = %d\n", i);
-			break;
-		}
-
-	printk("Internal test complete\n");
 }
 
 /* Map the memory for the channel interface into user space such that user space can
@@ -597,8 +529,6 @@ static int dmaproxy_probe(struct platform_device *pdev)
 		total_count++;
 	}
 
-	if (internal_test)
-		test(lp);
 	return 0;
 }
  
