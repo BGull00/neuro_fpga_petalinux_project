@@ -286,11 +286,11 @@ void *tx_thread(struct channel *channel_ptr) {
 	unsigned int h;
 	unsigned int i;
 	uint8_t pkt[INP_TDATA_WIDTH_BYTES];
-	uint8_t is_buffer_active[TX_BUFFER_COUNT] = {0};
+	uint8_t is_buffer_active[1] = {0};
 
 	/* Do DMA tx channel transfers of neuro FPGA packets until the user says to stop */
 	while(stop == 0) {
-		for(buffer_id = 0; buffer_id < TX_BUFFER_COUNT; buffer_id += 1) {
+		for(buffer_id = 0; buffer_id < 1; buffer_id += 1) {
 
 			/* If the current buffer has a DMA transfer active, finish it first (blocks thread) */
 			if(is_buffer_active[buffer_id]) {
@@ -387,7 +387,7 @@ void *tx_thread(struct channel *channel_ptr) {
 	}
 
 	/* Finish remaining DMA tx channel transfers */
-	for(buffer_id = 0; buffer_id < TX_BUFFER_COUNT; buffer_id += 1) {
+	for(buffer_id = 0; buffer_id < 1; buffer_id += 1) {
 		if(is_buffer_active[buffer_id]) {
 			ioctl(channel_ptr->fd, FINISH_XFER, &buffer_id);
 			if(channel_ptr->buf_ptr[buffer_id].status != PROXY_NO_ERROR) {
@@ -410,13 +410,13 @@ void *rx_thread(struct channel *channel_ptr) {
 	uint8_t pkt[OUT_TDATA_WIDTH_BYTES];
 	
 	/* Initialize every rx buffer by writing the DMA transfer size (equal to the neuro FPGA packet size in bytes) to its buffer table and starting a DMA transfer for the buffer*/
-	for(buffer_id = 0; buffer_id < RX_BUFFER_COUNT; buffer_id += 1) {
+	for(buffer_id = 0; buffer_id < 1; buffer_id += 1) {
 		channel_ptr->buf_ptr[buffer_id].length = BUFFER_SIZE;
 		ioctl(channel_ptr->fd, START_XFER, &buffer_id);
 	}
 
 	while(stop == 0) {
-		for(buffer_id = 0; buffer_id < RX_BUFFER_COUNT; buffer_id++) {
+		for(buffer_id = 0; buffer_id < 1; buffer_id++) {
 
 			/* Finish DMA transfer for the current buffer (blocking) */
 			ioctl(channel_ptr->fd, FINISH_XFER, &buffer_id);
@@ -502,7 +502,7 @@ void *rx_thread(struct channel *channel_ptr) {
 	}
 
 	/* Finish remaining DMA rx channel transfers */
-	for(buffer_id = 0; buffer_id < RX_BUFFER_COUNT; buffer_id++) {
+	for(buffer_id = 0; buffer_id < 1; buffer_id++) {
 
 		/* Finish DMA transfer for the current buffer (blocking) */
 		ioctl(channel_ptr->fd, FINISH_XFER, &buffer_id);
@@ -610,7 +610,7 @@ int setup_channels() {
 	}
 
 	/* Map DMA tx channel kernel driver memory into user space */
-	tx_channel.buf_ptr = (struct channel_buffer *)mmap(NULL, sizeof(struct channel_buffer) * TX_BUFFER_COUNT, PROT_READ | PROT_WRITE, MAP_SHARED, tx_channel.fd, 0);
+	tx_channel.buf_ptr = (struct channel_buffer *)mmap(NULL, sizeof(struct channel_buffer) * 1, PROT_READ | PROT_WRITE, MAP_SHARED, tx_channel.fd, 0);
 	if(tx_channel.buf_ptr == MAP_FAILED) {
 		printf("Failed to mmap DMA tx channel kernel driver memory into user space\n");
 		return -1;
@@ -624,7 +624,7 @@ int setup_channels() {
 	}
 
 	/* Map DMA rx channel kernel driver memory into user space */
-	rx_channel.buf_ptr = (struct channel_buffer *)mmap(NULL, sizeof(struct channel_buffer) * RX_BUFFER_COUNT, PROT_READ | PROT_WRITE, MAP_SHARED, rx_channel.fd, 0);
+	rx_channel.buf_ptr = (struct channel_buffer *)mmap(NULL, sizeof(struct channel_buffer) * 1, PROT_READ | PROT_WRITE, MAP_SHARED, rx_channel.fd, 0);
 	if(rx_channel.buf_ptr == MAP_FAILED) {
 		printf("Failed to mmap DMA rx channel kernel driver memory into user space\n");
 		return -1;
